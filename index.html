@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notes App</title>
+</head>
+<body>
+    <h1>Notes App</h1>
+    
+    <h2>Add Note</h2>
+    <form id="addNoteForm">
+        <label for="note">Note:</label>
+        <input type="text" id="note" name="note" required>
+        <button type="submit">Add Note</button>
+    </form>
+
+    <h2>Notes List</h2>
+    <ul id="notesList"></ul>
+
+    <script>
+        const apiEndpoint = 'https://9tsbahrpxf.execute-api.us-east-1.amazonaws.com/dev';
+
+        // Function to fetch notes from API
+        async function fetchNotes() {
+            try {
+                const response = await fetch(`${apiEndpoint}/notes`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch notes');
+                }
+                const data = await response.json();
+                const notesList = document.getElementById('notesList');
+                notesList.innerHTML = '';
+                data.forEach(note => {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = note.note;
+                    notesList.appendChild(listItem);
+                });
+            } catch (error) {
+                console.error('Error fetching notes:', error);
+                alert('Failed to fetch notes. Please try again later.');
+            }
+        }
+
+        // Function to add a new note via API
+        async function addNote(note) {
+            try {
+                const response = await fetch(`${apiEndpoint}/add`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ note })
+                });
+                if (!response.ok) {
+                    throw new Error('Failed to add note');
+                }
+                alert('Note added successfully!');
+                fetchNotes(); // Refresh notes list after adding
+            } catch (error) {
+                console.error('Error adding note:', error);
+                alert('Failed to add note. Please try again.');
+            }
+        }
+
+        // Event listener for form submission
+        const form = document.getElementById('addNoteForm');
+        form.addEventListener('submit', function(event) {
+            event.preventDefault();
+            const note = form.note.value.trim();
+            if (note) {
+                addNote(note);
+                form.reset();
+            } else {
+                alert('Please enter a note.');
+            }
+        });
+
+        // Fetch notes on page load
+        fetchNotes();
+    </script>
+</body>
+</html>
